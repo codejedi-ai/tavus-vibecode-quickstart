@@ -7,9 +7,9 @@ import { useAtom } from "jotai";
 import { getDefaultStore } from "jotai";
 import { settingsAtom, settingsSavedAtom } from "@/store/settings";
 import { screenAtom } from "@/store/screens";
-import { X } from "lucide-react";
+import { X, CheckCircle, XCircle, AlertTriangle } from "lucide-react";
 import * as React from "react";
-import { apiTokenAtom } from "@/store/tokens";
+import { apiTokenAtom, tokenValidationAtom } from "@/store/tokens";
 
 // Button Component
 const Button = React.forwardRef<
@@ -113,6 +113,7 @@ export const Settings: React.FC = () => {
   const [settings, setSettings] = useAtom(settingsAtom);
   const [, setScreenState] = useAtom(screenAtom);
   const [token] = useAtom(apiTokenAtom);
+  const [tokenValidation] = useAtom(tokenValidationAtom);
   const [, setSettingsSaved] = useAtom(settingsSavedAtom);
 
   const languages = [
@@ -132,7 +133,7 @@ export const Settings: React.FC = () => {
 
   const handleClose = () => {
     setScreenState({ 
-      currentScreen: token ? "instructions" : "intro" 
+      currentScreen: token && tokenValidation?.valid ? "instructions" : "intro" 
     });
   };
 
@@ -164,6 +165,46 @@ export const Settings: React.FC = () => {
     
     setSettingsSaved(true);
     handleClose();
+  };
+
+  const getTokenStatusIcon = () => {
+    if (!token) {
+      return <XCircle className="size-4 text-red-500" />;
+    }
+    
+    if (tokenValidation?.error === "Invalid access token") {
+      return <AlertTriangle className="size-4 text-red-500" />;
+    }
+    
+    if (tokenValidation?.error) {
+      return <XCircle className="size-4 text-red-500" />;
+    }
+    
+    if (tokenValidation?.valid) {
+      return <CheckCircle className="size-4 text-green-500" />;
+    }
+    
+    return <div className="size-2 rounded-full bg-yellow-500" />;
+  };
+
+  const getTokenStatusText = () => {
+    if (!token) {
+      return "No access token";
+    }
+    
+    if (tokenValidation?.error === "Invalid access token") {
+      return "Invalid access token";
+    }
+    
+    if (tokenValidation?.error) {
+      return `Error: ${tokenValidation.error}`;
+    }
+    
+    if (tokenValidation?.valid) {
+      return "API key configured and valid";
+    }
+    
+    return "Checking API key...";
   };
 
   return (
@@ -293,14 +334,19 @@ export const Settings: React.FC = () => {
                 <Label>API Token Status</Label>
                 <div className="p-3 bg-black/20 rounded-md border border-input">
                   <div className="flex items-center gap-2">
-                    <div className={`w-2 h-2 rounded-full ${token ? 'bg-green-500' : 'bg-red-500'}`} />
+                    {getTokenStatusIcon()}
                     <span className="text-sm font-mono">
-                      {token ? 'API key configured via environment' : 'API key not configured'}
+                      {getTokenStatusText()}
                     </span>
                   </div>
                   {!token && (
                     <p className="text-xs text-gray-400 mt-2 font-mono">
                       Set VITE_TAVUS_API_KEY in your .env file
+                    </p>
+                  )}
+                  {tokenValidation?.error === "Invalid access token" && (
+                    <p className="text-xs text-red-400 mt-2 font-mono">
+                      Please check your API key on the Tavus Platform
                     </p>
                   )}
                 </div>

@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { healthCheckApi, getConversation } from "@/api";
+import { healthCheckApi, getConversation, validateToken } from "@/api";
 import { screenAtom } from "@/store/screens";
 import { conversationAtom } from "@/store/conversation";
+import { tokenValidationAtom, isValidatingTokenAtom } from "@/store/tokens";
 import { useAtom, useAtomValue } from "jotai";
 import { quantum } from 'ldrs';
 import { getConversationIdFromUrl, isDirectConversationAccess } from "@/utils/urlUtils";
@@ -19,12 +20,36 @@ const useHealthCheck = () => {
     null,
   );
   const [, setConversation] = useAtom(conversationAtom);
+  const [, setTokenValidation] = useAtom(tokenValidationAtom);
+  const [, setIsValidating] = useAtom(isValidatingTokenAtom);
   const token = useAtomValue(apiTokenAtom);
 
   const healthCheck = async (): Promise<void> => {
     try {
       const response = await healthCheckApi();
       if (response?.status) {
+        // Validate token first
+        if (token) {
+          setIsValidating(true);
+          try {
+            const validation = await validateToken(token);
+            setTokenValidation(validation);
+            
+            if (!validation.valid) {
+              setScreenState("success");
+              return;
+            }
+          } catch (error) {
+            setTokenValidation({ valid: false, error: "Validation failed" });
+            setScreenState("success");
+            return;
+          } finally {
+            setIsValidating(false);
+          }
+        } else {
+          setTokenValidation({ valid: false, error: "No access token" });
+        }
+
         // Check if there's a conversation_id in the URL
         const conversationId = getConversationIdFromUrl();
         

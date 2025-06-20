@@ -50,7 +50,7 @@ Spin up this template in under a minute with StackBlitz:
 <br></br>
 ## 🔗 URL-Based Conversation Access
 
-The application supports two modes of operation:
+The application supports two modes of operation with clean URL routing:
 
 ### 1. Normal Demo Flow
 Access the application normally to start a new conversation:
@@ -59,28 +59,28 @@ https://your-app-url.com/
 ```
 
 ### 2. Direct Conversation Access
-Join a specific conversation by appending the conversation_id as a URL parameter:
+Join a specific conversation using clean URL paths (similar to Tavus Daily):
 ```
-https://your-app-url.com/?conversation_id=your_conversation_id_here
+https://your-app-url.com/c6a501e6bea4f4fe
 ```
 
 **How URL routing works:**
-- When accessing a conversation directly, the app automatically attempts to join the specified conversation
-- If the conversation exists and is accessible, you'll be taken directly to the fullscreen video chat
-- If the conversation doesn't exist or there's an error, you'll be redirected to the normal intro flow
-- The conversation_id is automatically added to the URL when you start a new conversation for easy sharing
-- URL routing works regardless of API key status (useful for server-side configurations)
+- **Clean URLs**: Conversation IDs are part of the URL path, not query parameters
+- **Direct Access**: Share conversation URLs that work like `https://tavus.daily.co/conversation_id`
+- **Automatic Routing**: When accessing a conversation directly, the app automatically attempts to join
+- **Fallback Handling**: Invalid or expired conversations redirect to the normal intro flow
+- **URL Updates**: Starting a new conversation automatically updates the URL for easy sharing
+- **Environment Agnostic**: URL routing works regardless of API key configuration method
 
-<br></br>
-## 🎥 Fullscreen Video Experience
+**URL Format Examples:**
+```bash
+# Home page
+https://your-app.com/
 
-The conversation interface has been designed for maximum immersion:
-
-- **Fullscreen Layout**: Video chat takes up the entire screen without header/footer distractions
-- **Overlaid Controls**: Settings gear icon (⚙️) is positioned over the video in the top-right corner
-- **Responsive Design**: Optimized for all screen sizes from mobile to desktop
-- **Picture-in-Picture**: Your local video appears as a small overlay in the bottom-right
-- **Control Bar**: Audio/video toggle and end call buttons are centered at the bottom
+# Direct conversation access
+https://your-app.com/abc123def456ghi789
+https://your-app.com/conversation_id_here
+```
 
 <br></br>
 ## ⚙️ Settings & Configuration
@@ -120,7 +120,7 @@ VITE_TAVUS_API_KEY=your_tavus_api_key_here
 - Use your deployment platform's environment variable settings for production
 
 ### Production Deployment:
-Most hosting platforms support environment variables:
+Most hosting platforms support environment variables and SPA routing:
 
 **Vercel:**
 ```bash
@@ -128,10 +128,12 @@ vercel env add VITE_TAVUS_API_KEY
 ```
 
 **Netlify:**
-Add environment variables in Site Settings → Environment Variables
+- Add environment variables in Site Settings → Environment Variables
+- The `_redirects` file is included for proper SPA routing
 
 **Railway/Render/Heroku:**
-Use their respective environment variable configuration panels
+- Use their respective environment variable configuration panels
+- Ensure your platform supports SPA routing or configure redirects
 
 <br></br>
 ## 🚨 Troubleshooting
@@ -147,11 +149,53 @@ Use their respective environment variable configuration panels
 - Verify the conversation_id exists and is accessible
 - Check that your API key has permissions for the conversation
 - Ensure the conversation hasn't expired or been terminated
+- Verify your server/hosting platform supports SPA routing
+
+**404 Errors on Direct URLs:**
+- Configure your web server to serve `index.html` for all routes
+- For Netlify: `_redirects` file is included
+- For Apache: Add `.htaccess` with rewrite rules
+- For Nginx: Configure `try_files` directive
 
 **Video/Audio Issues:**
 - Grant camera and microphone permissions in your browser
 - Check browser compatibility (Chrome/Firefox/Safari recommended)
 - Ensure you're using HTTPS in production (required for WebRTC)
+
+<br></br>
+## 🌐 Deployment Configuration
+
+### SPA Routing Setup
+
+**Netlify** (Included):
+```
+# _redirects file (already included)
+/*    /index.html   200
+```
+
+**Vercel** (`vercel.json`):
+```json
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
+```
+
+**Apache** (`.htaccess`):
+```apache
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.html [L]
+```
+
+**Nginx**:
+```nginx
+location / {
+  try_files $uri $uri/ /index.html;
+}
+```
 
 <br></br>
 ## 📚 Resources

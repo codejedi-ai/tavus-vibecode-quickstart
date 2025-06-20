@@ -16,7 +16,9 @@ export default defineConfig({
       'Cross-Origin-Opener-Policy': 'same-origin',
       'Cross-Origin-Embedder-Policy': 'require-corp',
       'Cross-Origin-Resource-Policy': 'cross-origin'
-    }
+    },
+    // Enable history API fallback for client-side routing
+    historyApiFallback: true,
   },
   build: {
     rollupOptions: {

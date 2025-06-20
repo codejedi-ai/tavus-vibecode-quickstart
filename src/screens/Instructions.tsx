@@ -17,6 +17,7 @@ import { apiTokenAtom, tokenValidationAtom, isValidatingTokenAtom } from "@/stor
 import { validateToken } from "@/api";
 import { quantum } from 'ldrs';
 import gloriaVideo from "@/assets/video/gloria.mp4";
+import { ErrorIcon } from "@/components/ErrorIcon";
 
 // Register the quantum loader
 quantum.register();
@@ -193,16 +194,21 @@ export const Instructions: React.FC = () => {
     return (
       <DialogWrapper>
         <AnimatedTextBlockWrapper>
-          <StaticTextBlockWrapper
-            imgSrc="/images/error.png"
-            title="Connection Error"
-            titleClassName="sm:max-w-full"
-            description={tokenError || conversationError || "We're having trouble connecting. Please try again in a few moments."}
-          >
-            <Button onClick={handleClick} className="mt-6 sm:mt-8">
+          <div className="flex flex-col items-center justify-center">
+            <ErrorIcon 
+              size={80} 
+              className="mb-4 sm:mb-8 error-icon" 
+            />
+            <h2 className="mb-4 bg-text-primary bg-clip-text pt-1 text-center text-4.5xl text-transparent sm:max-w-[650px] sm:text-6.5xl lg:text-7xl">
+              Connection Error
+            </h2>
+            <p className="max-w-[650px] text-center text-base sm:text-lg mb-6 sm:mb-8">
+              {tokenError || conversationError || "We're having trouble connecting. Please try again in a few moments."}
+            </p>
+            <Button onClick={handleClick} className="flex items-center gap-2">
               <Video className="size-5" /> Try Again
             </Button>
-          </StaticTextBlockWrapper>
+          </div>
         </AnimatedTextBlockWrapper>
       </DialogWrapper>
     );

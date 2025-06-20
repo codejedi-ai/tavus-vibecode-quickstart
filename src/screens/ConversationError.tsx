@@ -9,6 +9,7 @@ import React from "react";
 import { useAtom } from "jotai";
 import { screenAtom } from "@/store/screens";
 import { removeConversationIdFromUrl, isBogusConversationUrl } from "@/utils/urlUtils";
+import { ErrorIcon } from "@/components/ErrorIcon";
 
 export const ConversationError: React.FC<{ 
   onClick?: () => void;
@@ -83,12 +84,18 @@ export const ConversationError: React.FC<{
   return (
     <DialogWrapper>
       <AnimatedTextBlockWrapper>
-        <StaticTextBlockWrapper
-          title={getErrorTitle()}
-          titleClassName="sm:max-w-full"
-          description={getErrorMessage()}
-        >
-          <div className="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
+        <div className="flex flex-col items-center justify-center">
+          <ErrorIcon 
+            size={80} 
+            className="mb-4 sm:mb-8 error-icon" 
+          />
+          <h2 className="mb-4 bg-text-primary bg-clip-text pt-1 text-center text-4.5xl text-transparent sm:max-w-[650px] sm:text-6.5xl lg:text-7xl">
+            {getErrorTitle()}
+          </h2>
+          <p className="max-w-[650px] text-center text-base sm:text-lg mb-6 sm:mb-8">
+            {getErrorMessage()}
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4">
             {shouldShowRetryButton() && (
               <AudioButton onClick={handleRetry} className="flex items-center gap-2">
                 <RefreshCcw className="size-5" /> Try Again
@@ -102,7 +109,7 @@ export const ConversationError: React.FC<{
               <Home className="size-5" /> Go Home
             </AudioButton>
           </div>
-        </StaticTextBlockWrapper>
+        </div>
       </AnimatedTextBlockWrapper>
     </DialogWrapper>
   );

@@ -13,6 +13,7 @@ const screens = {
   success: "intro",
   outOfTime: "outOfMinutes",
   conversation: "conversation",
+  conversationError: "conversationError",
 } as const;
 
 const useHealthCheck = () => {
@@ -22,6 +23,7 @@ const useHealthCheck = () => {
   const [, setConversation] = useAtom(conversationAtom);
   const [, setTokenValidation] = useAtom(tokenValidationAtom);
   const [, setIsValidating] = useAtom(isValidatingTokenAtom);
+  const [conversationError, setConversationError] = useState<string | null>(null);
   const token = useAtomValue(apiTokenAtom);
 
   const healthCheck = async (): Promise<void> => {
@@ -61,8 +63,16 @@ const useHealthCheck = () => {
             setScreenState("conversation");
           } catch (error) {
             console.error("Failed to load conversation:", error);
-            // If conversation fetch fails, go to normal intro
-            setScreenState("success");
+            
+            // Store the conversation error for display
+            if (error instanceof Error) {
+              setConversationError(error.message);
+            } else {
+              setConversationError("Failed to load conversation");
+            }
+            
+            // Set screen to show conversation error
+            setScreenState("conversationError");
           }
         } else {
           setScreenState("success");
@@ -79,24 +89,32 @@ const useHealthCheck = () => {
     healthCheck();
   }, []);
 
-  return { screenState };
+  return { screenState, conversationError };
 };
 
 quantum.register();
 
 export const IntroLoading: React.FC = () => {
-  const { screenState } = useHealthCheck();
+  const { screenState, conversationError } = useHealthCheck();
   const [, setScreenState] = useAtom(screenAtom);
 
   useEffect(() => {
     if (screenState !== null) {
       const timer = setTimeout(() => {
-        setScreenState({ currentScreen: screens[screenState] });
+        if (screenState === "conversationError") {
+          // Pass the error to the conversation error screen
+          setScreenState({ 
+            currentScreen: "conversationError",
+            error: conversationError 
+          });
+        } else {
+          setScreenState({ currentScreen: screens[screenState] });
+        }
       }, 1000);
 
       return () => clearTimeout(timer);
     }
-  }, [screenState]);
+  }, [screenState, conversationError]);
 
   return (
     <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">

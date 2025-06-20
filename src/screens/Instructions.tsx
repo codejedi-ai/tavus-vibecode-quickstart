@@ -48,7 +48,8 @@ const useCreateConversationMutation = () => {
       setScreenState({ currentScreen: "conversation" });
     } catch (error) {
       console.error("Conversation creation error:", error);
-      setError(error instanceof Error ? error.message : String(error));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      setError(errorMessage);
       throw error; // Re-throw to be caught by the calling function
     } finally {
       setIsLoading(false);
@@ -65,7 +66,7 @@ const useCreateConversationMutation = () => {
 export const Instructions: React.FC = () => {
   const daily = useDaily();
   const { currentMic, setMicrophone, setSpeaker } = useDevices();
-  const { createConversationRequest } = useCreateConversationMutation();
+  const { createConversationRequest, error: conversationError } = useCreateConversationMutation();
   const [getUserMediaError, setGetUserMediaError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
@@ -93,6 +94,7 @@ export const Instructions: React.FC = () => {
     try {
       setIsLoading(true);
       setTokenError(null);
+      setError(false);
       setIsPlayingSound(true);
       
       audio.currentTime = 0;
@@ -140,6 +142,14 @@ export const Instructions: React.FC = () => {
           setTokenError("Invalid access token - please check your API key on the Tavus Platform");
         } else if (error.message.includes("No access token")) {
           setTokenError("No access token configured - please set VITE_TAVUS_API_KEY in your .env file");
+        } else if (error.message.includes("persona")) {
+          setTokenError("Invalid persona configuration - please check your persona ID in settings");
+        } else if (error.message.includes("quota") || error.message.includes("limit")) {
+          setTokenError("Account quota exceeded - please check your Tavus account limits");
+        } else if (error.message.includes("Rate limit")) {
+          setTokenError("Rate limit exceeded - please try again in a moment");
+        } else if (error.message.includes("service temporarily unavailable")) {
+          setTokenError("Tavus service temporarily unavailable - please try again later");
         } else {
           setTokenError(error.message);
         }
@@ -179,7 +189,7 @@ export const Instructions: React.FC = () => {
     );
   }
 
-  if (error || tokenError) {
+  if (error || tokenError || conversationError) {
     return (
       <DialogWrapper>
         <AnimatedTextBlockWrapper>
@@ -187,7 +197,7 @@ export const Instructions: React.FC = () => {
             imgSrc="/images/error.png"
             title="Connection Error"
             titleClassName="sm:max-w-full"
-            description={tokenError || "We're having trouble connecting. Please try again in a few moments."}
+            description={tokenError || conversationError || "We're having trouble connecting. Please try again in a few moments."}
           >
             <Button onClick={handleClick} className="mt-6 sm:mt-8">
               <Video className="size-5" /> Try Again

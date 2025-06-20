@@ -4,24 +4,91 @@ import {
   DialogWrapper,
   StaticTextBlockWrapper,
 } from "@/components/DialogWrapper";
-import { RefreshCcw } from "lucide-react";
+import { RefreshCcw, Home } from "lucide-react";
 import React from "react";
+import { useAtom } from "jotai";
+import { screenAtom } from "@/store/screens";
+import { removeConversationIdFromUrl } from "@/utils/urlUtils";
 
-export const ConversationError: React.FC<{ onClick: () => void }> = ({
+export const ConversationError: React.FC<{ 
+  onClick?: () => void;
+  error?: string;
+}> = ({
   onClick,
+  error
 }) => {
+  const [, setScreenState] = useAtom(screenAtom);
+
+  const handleRetry = () => {
+    if (onClick) {
+      onClick();
+    } else {
+      // Reload the page to retry
+      window.location.reload();
+    }
+  };
+
+  const handleGoHome = () => {
+    removeConversationIdFromUrl();
+    setScreenState({ currentScreen: "intro" });
+  };
+
+  const getErrorMessage = () => {
+    if (error) {
+      if (error.includes("not found")) {
+        return "This conversation could not be found. It may have expired or been deleted.";
+      }
+      if (error.includes("Invalid access token")) {
+        return "Invalid API key. Please check your Tavus API configuration.";
+      }
+      if (error.includes("Access forbidden")) {
+        return "You don't have permission to access this conversation.";
+      }
+      if (error.includes("service temporarily unavailable")) {
+        return "The Tavus service is temporarily unavailable. Please try again in a few moments.";
+      }
+      return error;
+    }
+    return "We're having trouble connecting to this conversation. Please try again in a few moments.";
+  };
+
+  const getErrorTitle = () => {
+    if (error?.includes("not found")) {
+      return "Conversation Not Found";
+    }
+    if (error?.includes("Invalid access token")) {
+      return "Authentication Error";
+    }
+    if (error?.includes("Access forbidden")) {
+      return "Access Denied";
+    }
+    if (error?.includes("service temporarily unavailable")) {
+      return "Service Unavailable";
+    }
+    return "Connection Error";
+  };
+
   return (
     <DialogWrapper>
       <AnimatedTextBlockWrapper>
         <StaticTextBlockWrapper
           imgSrc="/images/error.png"
-          title="Connection Error"
+          title={getErrorTitle()}
           titleClassName="sm:max-w-full"
-          description="We're having trouble connecting. Please try again in a few moments."
+          description={getErrorMessage()}
         >
-          <AudioButton onClick={onClick} className="mt-6 sm:mt-8">
-            <RefreshCcw className="size-5" /> Try Again
-          </AudioButton>
+          <div className="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
+            <AudioButton onClick={handleRetry} className="flex items-center gap-2">
+              <RefreshCcw className="size-5" /> Try Again
+            </AudioButton>
+            <AudioButton 
+              onClick={handleGoHome} 
+              className="flex items-center gap-2"
+              variant="outline"
+            >
+              <Home className="size-5" /> Go Home
+            </AudioButton>
+          </div>
         </StaticTextBlockWrapper>
       </AnimatedTextBlockWrapper>
     </DialogWrapper>

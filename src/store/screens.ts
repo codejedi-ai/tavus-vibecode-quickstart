@@ -16,6 +16,7 @@ export type Screen =
 
 interface ScreenState {
   currentScreen: Screen;
+  error?: string;
 }
 
 const initialScreenState: ScreenState = {

@@ -12,9 +12,10 @@ import {
   FinalScreen,
   Settings,
 } from "./screens";
+import { ConversationError } from "./screens/ConversationError";
 
 function App() {
-  const [{ currentScreen }] = useAtom(screenAtom);
+  const [{ currentScreen, error }] = useAtom(screenAtom);
 
   const renderScreen = () => {
     switch (currentScreen) {
@@ -32,6 +33,8 @@ function App() {
         return <Instructions />;
       case "conversation":
         return <Conversation />;
+      case "conversationError":
+        return <ConversationError error={error} />;
       case "finalScreen":
         return <FinalScreen />;
       default:

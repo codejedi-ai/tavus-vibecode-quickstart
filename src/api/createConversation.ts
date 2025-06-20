@@ -1,6 +1,7 @@
 import { IConversation } from "@/types";
 import { settingsAtom } from "@/store/settings";
 import { getDefaultStore } from "jotai";
+import { setConversationIdInUrl } from "@/utils/urlUtils";
 
 export const createConversation = async (
   token: string,
@@ -44,5 +45,11 @@ export const createConversation = async (
   }
 
   const data = await response.json();
+  
+  // Add conversation_id to URL for sharing/bookmarking
+  if (data.conversation_id) {
+    setConversationIdInUrl(data.conversation_id);
+  }
+  
   return data;
 };

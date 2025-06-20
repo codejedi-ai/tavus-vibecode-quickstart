@@ -44,6 +44,29 @@ Spin up this template in under a minute with StackBlitz:
    - Learn how to [create your own persona](https://docs.tavus.io/sections/conversational-video-interface/creating-a-persona) on the [Tavus Platform](https://platform.tavus.io/)
 
 <br></br>
+## 🔗 URL-Based Conversation Access
+
+The application supports two modes of operation:
+
+### 1. Normal Demo Flow
+Access the application normally to start a new conversation:
+```
+https://your-app-url.com/
+```
+
+### 2. Direct Conversation Access
+Join a specific conversation by appending the conversation_id as a URL parameter:
+```
+https://your-app-url.com/?conversation_id=your_conversation_id_here
+```
+
+When accessing a conversation directly:
+- The app will automatically attempt to join the specified conversation
+- If the conversation exists and is accessible, you'll be taken directly to the video chat
+- If the conversation doesn't exist or there's an error, you'll be redirected to the normal intro flow
+- The conversation_id will be automatically added to the URL when you start a new conversation for easy sharing
+
+<br></br>
 ## 🔒 Security
 
 This template uses environment variables to securely handle your Tavus API key. The API key is loaded from `VITE_TAVUS_API_KEY` environment variable and never exposed in the frontend code.

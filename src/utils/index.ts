@@ -54,3 +54,6 @@ export function updateSessionEndTime() {
 export const clearSessionTime = () => {
   Cookies.remove("sessionTime");
 };
+
+// Re-export URL utilities
+export * from "./urlUtils";

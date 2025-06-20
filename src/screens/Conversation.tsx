@@ -34,6 +34,7 @@ import { naughtyScoreAtom } from "@/store/game";
 import { apiTokenAtom } from "@/store/tokens";
 import { quantum } from 'ldrs';
 import { cn } from "@/lib/utils";
+import { removeConversationIdFromUrl, isDirectConversationAccess } from "@/utils/urlUtils";
 
 quantum.register();
 
@@ -64,6 +65,7 @@ export const Conversation: React.FC = () => {
   const isMicEnabled = !localAudio.isOff;
   const remoteParticipantIds = useParticipantIds({ filter: "remote" });
   const [start, setStart] = useState(false);
+  const [isDirectAccess] = useState(isDirectConversationAccess());
 
   useEffect(() => {
     if (remoteParticipantIds.length && !start) {
@@ -144,6 +146,11 @@ export const Conversation: React.FC = () => {
     }
     setConversation(null);
     clearSessionTime();
+    
+    // Remove conversation_id from URL if it was a direct access
+    if (isDirectAccess) {
+      removeConversationIdFromUrl();
+    }
 
     const naughtyScorePositive = Math.abs(naughtyScore);
     if (naughtyScorePositive > niceScore) {
@@ -151,7 +158,7 @@ export const Conversation: React.FC = () => {
     } else {
       setScreenState({ currentScreen: "finalScreen" });
     }
-  }, [daily, token]);
+  }, [daily, token, isDirectAccess]);
 
   return (
     <DialogWrapper>

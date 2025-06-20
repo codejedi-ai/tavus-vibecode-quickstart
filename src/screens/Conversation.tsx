@@ -75,7 +75,7 @@ export const Conversation: React.FC = () => {
   }, [remoteParticipantIds, start]);
 
   useEffect(() => {
-    if (!remoteParticipantIds.length || !start) return;
+    if (!remoteParticipantIds.length || !start || isDirectAccess) return;
 
     setSessionStartTime();
     const interval = setInterval(() => {
@@ -113,7 +113,7 @@ export const Conversation: React.FC = () => {
       }
     }, 1000);
     return () => clearInterval(interval);
-  }, [remoteParticipantIds, start]);
+  }, [remoteParticipantIds, start, isDirectAccess]);
 
   useEffect(() => {
     if (conversation?.conversation_url) {
@@ -178,7 +178,7 @@ export const Conversation: React.FC = () => {
       <div className="absolute inset-0 size-full">
         {remoteParticipantIds?.length > 0 ? (
           <>
-            <Timer />
+            {!isDirectAccess && <Timer />}
             <Video
               id={remoteParticipantIds[0]}
               className="size-full"

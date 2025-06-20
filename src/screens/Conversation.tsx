@@ -117,6 +117,8 @@ export const Conversation: React.FC = () => {
 
   useEffect(() => {
     if (conversation?.conversation_url) {
+      let active = true;
+      
       daily
         ?.join({
           url: conversation.conversation_url,
@@ -124,11 +126,22 @@ export const Conversation: React.FC = () => {
           startAudioOff: true,
         })
         .then(() => {
-          daily?.setLocalVideo(true);
-          daily?.setLocalAudio(false);
+          // Only proceed if the component is still active and conversation is still valid
+          if (active && conversation && daily) {
+            daily.setLocalVideo(true);
+            daily.setLocalAudio(false);
+          }
+        })
+        .catch((error) => {
+          // Handle join errors gracefully
+          console.error("Failed to join Daily.co call:", error);
         });
+
+      return () => {
+        active = false;
+      };
     }
-  }, [conversation?.conversation_url]);
+  }, [conversation?.conversation_url, daily, conversation]);
 
   const toggleVideo = useCallback(() => {
     daily?.setLocalVideo(!isCameraEnabled);

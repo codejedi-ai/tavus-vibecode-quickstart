@@ -39,6 +39,16 @@ function App() {
     }
   };
 
+  // Fullscreen layout for conversation screen
+  if (currentScreen === "conversation") {
+    return (
+      <main className="h-svh w-full bg-black">
+        {renderScreen()}
+      </main>
+    );
+  }
+
+  // Regular layout for other screens
   return (
     <main className="flex h-svh flex-col items-center justify-between gap-3 p-5 sm:gap-4 lg:p-8 bg-black">
       {currentScreen !== "introLoading" && <Header />}

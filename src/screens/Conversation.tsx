@@ -1,4 +1,3 @@
-import { DialogWrapper } from "@/components/DialogWrapper";
 import {
   DailyAudio,
   useDaily,
@@ -20,6 +19,7 @@ import {
   VideoIcon,
   VideoOffIcon,
   PhoneIcon,
+  Settings,
 } from "lucide-react";
 import {
   clearSessionTime,
@@ -138,6 +138,10 @@ export const Conversation: React.FC = () => {
     daily?.setLocalAudio(!isMicEnabled);
   }, [daily, isMicEnabled]);
 
+  const handleSettings = () => {
+    setScreenState({ currentScreen: "settings" });
+  };
+
   const leaveConversation = useCallback(() => {
     daily?.leave();
     daily?.destroy();
@@ -161,17 +165,28 @@ export const Conversation: React.FC = () => {
   }, [daily, token, isDirectAccess]);
 
   return (
-    <DialogWrapper>
+    <div className="relative h-full w-full bg-black">
+      {/* Settings Button Overlay */}
+      <Button
+        variant="outline"
+        size="icon"
+        onClick={handleSettings}
+        className="absolute top-4 right-4 z-30 size-12 border-0 bg-black/50 hover:bg-black/70 backdrop-blur-sm"
+      >
+        <Settings className="size-6 text-white" />
+      </Button>
+
+      {/* Timer Overlay */}
+      <Timer />
+
+      {/* Main Video Content */}
       <div className="absolute inset-0 size-full">
         {remoteParticipantIds?.length > 0 ? (
-          <>
-            <Timer />
-            <Video
-              id={remoteParticipantIds[0]}
-              className="size-full"
-              tileClassName="!object-cover"
-            />
-          </>
+          <Video
+            id={remoteParticipantIds[0]}
+            className="size-full"
+            tileClassName="!object-cover"
+          />
         ) : (
           <div className="flex h-full items-center justify-center">
             <l-quantum
@@ -181,6 +196,8 @@ export const Conversation: React.FC = () => {
             ></l-quantum>
           </div>
         )}
+
+        {/* Local Video (Picture-in-Picture) */}
         {localSessionId && (
           <Video
             id={localSessionId}
@@ -190,7 +207,9 @@ export const Conversation: React.FC = () => {
             )}
           />
         )}
-        <div className="absolute bottom-8 right-1/2 z-10 flex translate-x-1/2 justify-center gap-4">
+
+        {/* Control Buttons */}
+        <div className="absolute bottom-8 left-1/2 z-10 flex -translate-x-1/2 justify-center gap-4">
           <Button
             size="icon"
             className="border border-[#22C5FE] shadow-[0_0_20px_rgba(34,197,254,0.2)]"
@@ -224,8 +243,9 @@ export const Conversation: React.FC = () => {
             <PhoneIcon className="size-6 rotate-[135deg]" />
           </Button>
         </div>
+
         <DailyAudio />
       </div>
-    </DialogWrapper>
+    </div>
   );
 };

@@ -2,7 +2,7 @@ import { AnimatedWrapper } from "@/components/DialogWrapper";
 import React from "react";
 import { useAtom } from "jotai";
 import { screenAtom } from "@/store/screens";
-import { Play } from "lucide-react";
+import { Play, Lock } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import { apiTokenAtom } from "@/store/tokens";
 import gloriaVideo from "@/assets/video/gloria.mp4";
@@ -66,8 +66,8 @@ export const Intro: React.FC = () => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <Play className="size-4" />
-            Start Demo
+            {token ? <Play className="size-4" /> : <Lock className="size-4" />}
+            {token ? "Start Demo" : "API Key Required"}
           </AudioButton>
         </div>
       </div>

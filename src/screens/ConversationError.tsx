@@ -84,7 +84,6 @@ export const ConversationError: React.FC<{
     <DialogWrapper>
       <AnimatedTextBlockWrapper>
         <StaticTextBlockWrapper
-          imgSrc="/images/error.png"
           title={getErrorTitle()}
           titleClassName="sm:max-w-full"
           description={getErrorMessage()}

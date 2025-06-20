@@ -8,7 +8,7 @@ import { RefreshCcw, Home } from "lucide-react";
 import React from "react";
 import { useAtom } from "jotai";
 import { screenAtom } from "@/store/screens";
-import { removeConversationIdFromUrl } from "@/utils/urlUtils";
+import { removeConversationIdFromUrl, isBogusConversationUrl } from "@/utils/urlUtils";
 
 export const ConversationError: React.FC<{ 
   onClick?: () => void;
@@ -35,6 +35,10 @@ export const ConversationError: React.FC<{
 
   const getErrorMessage = () => {
     if (error) {
+      // Check if this is a bogus URL error
+      if (error.includes("The meeting you're trying to join does not exist")) {
+        return error;
+      }
       if (error.includes("not found")) {
         return "This conversation could not be found. It may have expired or been deleted.";
       }
@@ -53,6 +57,9 @@ export const ConversationError: React.FC<{
   };
 
   const getErrorTitle = () => {
+    if (error?.includes("The meeting you're trying to join does not exist")) {
+      return "Meeting Not Found";
+    }
     if (error?.includes("not found")) {
       return "Conversation Not Found";
     }
@@ -68,6 +75,11 @@ export const ConversationError: React.FC<{
     return "Connection Error";
   };
 
+  const shouldShowRetryButton = () => {
+    // Don't show retry button for bogus URLs since retrying won't help
+    return !error?.includes("The meeting you're trying to join does not exist");
+  };
+
   return (
     <DialogWrapper>
       <AnimatedTextBlockWrapper>
@@ -78,9 +90,11 @@ export const ConversationError: React.FC<{
           description={getErrorMessage()}
         >
           <div className="flex flex-col sm:flex-row gap-4 mt-6 sm:mt-8">
-            <AudioButton onClick={handleRetry} className="flex items-center gap-2">
-              <RefreshCcw className="size-5" /> Try Again
-            </AudioButton>
+            {shouldShowRetryButton() && (
+              <AudioButton onClick={handleRetry} className="flex items-center gap-2">
+                <RefreshCcw className="size-5" /> Try Again
+              </AudioButton>
+            )}
             <AudioButton 
               onClick={handleGoHome} 
               className="flex items-center gap-2"

@@ -5,7 +5,12 @@ import { conversationAtom } from "@/store/conversation";
 import { tokenValidationAtom, isValidatingTokenAtom } from "@/store/tokens";
 import { useAtom, useAtomValue } from "jotai";
 import { quantum } from 'ldrs';
-import { getConversationIdFromUrl, isDirectConversationAccess } from "@/utils/urlUtils";
+import { 
+  getConversationIdFromUrl, 
+  isDirectConversationAccess, 
+  isBogusConversationUrl,
+  getBogusConversationId 
+} from "@/utils/urlUtils";
 import { apiTokenAtom } from "@/store/tokens";
 
 const screens = {
@@ -30,6 +35,14 @@ const useHealthCheck = () => {
     try {
       const response = await healthCheckApi();
       if (response?.status) {
+        // Check for bogus conversation URL first
+        if (isBogusConversationUrl()) {
+          const bogusId = getBogusConversationId();
+          setConversationError(`The meeting you're trying to join does not exist for ${window.location.origin}/${bogusId}.`);
+          setScreenState("conversationError");
+          return;
+        }
+
         // Validate token first
         if (token) {
           setIsValidating(true);

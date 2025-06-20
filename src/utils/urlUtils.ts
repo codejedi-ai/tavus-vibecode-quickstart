@@ -28,6 +28,33 @@ export const isDirectConversationAccess = (): boolean => {
   return getConversationIdFromUrl() !== null;
 };
 
+export const isBogusConversationUrl = (): boolean => {
+  const path = window.location.pathname;
+  const pathSegment = path.substring(1);
+  
+  // Check if there's a path segment but it doesn't match valid conversation ID format
+  if (pathSegment && pathSegment !== '') {
+    const conversationIdPattern = /^[a-zA-Z0-9]{16,}$/;
+    return !conversationIdPattern.test(pathSegment);
+  }
+  
+  return false;
+};
+
+export const getBogusConversationId = (): string | null => {
+  const path = window.location.pathname;
+  const pathSegment = path.substring(1);
+  
+  if (pathSegment && pathSegment !== '') {
+    const conversationIdPattern = /^[a-zA-Z0-9]{16,}$/;
+    if (!conversationIdPattern.test(pathSegment)) {
+      return pathSegment;
+    }
+  }
+  
+  return null;
+};
+
 export const navigateToConversation = (conversationId: string): void => {
   window.location.href = `/${conversationId}`;
 };

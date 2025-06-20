@@ -13,7 +13,8 @@ import { useDaily, useDailyEvent, useDevices } from "@daily-co/daily-react";
 import { ConversationError } from "./ConversationError";
 import zoomSound from "@/assets/sounds/zoom.mp3";
 import { Button } from "@/components/ui/button";
-import { apiTokenAtom } from "@/store/tokens";
+import { apiTokenAtom, tokenValidationAtom, isValidatingTokenAtom } from "@/store/tokens";
+import { validateToken } from "@/api";
 import { quantum } from 'ldrs';
 import gloriaVideo from "@/assets/video/gloria.mp4";
 
@@ -30,13 +31,25 @@ const useCreateConversationMutation = () => {
   const createConversationRequest = async () => {
     try {
       if (!token) {
-        throw new Error("Token is required");
+        throw new Error("No access token configured");
       }
+
+      // Validate token before creating conversation
+      const validation = await validateToken(token);
+      if (!validation.valid) {
+        if (validation.error === "Invalid access token") {
+          throw new Error("Invalid access token - please check your API key");
+        }
+        throw new Error(validation.error || "Token validation failed");
+      }
+
       const conversation = await createConversation(token);
       setConversation(conversation);
       setScreenState({ currentScreen: "conversation" });
     } catch (error) {
-      setError(error as string);
+      console.error("Conversation creation error:", error);
+      setError(error instanceof Error ? error.message : String(error));
+      throw error; // Re-throw to be caught by the calling function
     } finally {
       setIsLoading(false);
     }
@@ -57,6 +70,11 @@ export const Instructions: React.FC = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingConversation, setIsLoadingConversation] = useState(false);
   const [error, setError] = useState(false);
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const token = useAtomValue(apiTokenAtom);
+  const [tokenValidation] = useAtom(tokenValidationAtom);
+  const [isValidatingToken] = useAtom(isValidatingTokenAtom);
+  
   const audio = useMemo(() => {
     const audioObj = new Audio(zoomSound);
     audioObj.volume = 0.7;
@@ -74,6 +92,7 @@ export const Instructions: React.FC = () => {
   const handleClick = async () => {
     try {
       setIsLoading(true);
+      setTokenError(null);
       setIsPlayingSound(true);
       
       audio.currentTime = 0;
@@ -113,7 +132,21 @@ export const Instructions: React.FC = () => {
         setGetUserMediaError(true);
       }
     } catch (error) {
-      console.error(error);
+      console.error("Video chat start error:", error);
+      
+      // Handle token-specific errors
+      if (error instanceof Error) {
+        if (error.message.includes("Invalid access token")) {
+          setTokenError("Invalid access token - please check your API key on the Tavus Platform");
+        } else if (error.message.includes("No access token")) {
+          setTokenError("No access token configured - please set VITE_TAVUS_API_KEY in your .env file");
+        } else {
+          setTokenError(error.message);
+        }
+      } else {
+        setTokenError("An unexpected error occurred");
+      }
+      
       setError(true);
     } finally {
       setIsLoading(false);
@@ -146,9 +179,27 @@ export const Instructions: React.FC = () => {
     );
   }
 
-  if (error) {
-    return <ConversationError onClick={handleClick} />;
+  if (error || tokenError) {
+    return (
+      <DialogWrapper>
+        <AnimatedTextBlockWrapper>
+          <StaticTextBlockWrapper
+            imgSrc="/images/error.png"
+            title="Connection Error"
+            titleClassName="sm:max-w-full"
+            description={tokenError || "We're having trouble connecting. Please try again in a few moments."}
+          >
+            <Button onClick={handleClick} className="mt-6 sm:mt-8">
+              <Video className="size-5" /> Try Again
+            </Button>
+          </StaticTextBlockWrapper>
+        </AnimatedTextBlockWrapper>
+      </DialogWrapper>
+    );
   }
+
+  // Check if we can start the demo
+  const canStartDemo = token && (tokenValidation?.valid === true || !tokenValidation) && !isValidatingToken;
 
   return (
     <DialogWrapper>
@@ -176,17 +227,38 @@ export const Instructions: React.FC = () => {
         <p className="max-w-[650px] text-center text-base sm:text-lg text-gray-400 mb-12">
           Have a face-to-face conversation with an AI so real, it feels human—an intelligent agent ready to listen, respond, and act across countless use cases.
         </p>
+        
+        {/* Token validation warning */}
+        {(!token || tokenValidation?.valid === false) && (
+          <div className="mb-6 p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-center max-w-md">
+            <div className="flex items-center justify-center gap-2 mb-2">
+              <AlertTriangle className="size-5 text-red-400" />
+              <span className="text-red-400 font-semibold">API Key Issue</span>
+            </div>
+            <p className="text-sm text-red-200">
+              {!token 
+                ? "No API key configured. Please set VITE_TAVUS_API_KEY in your .env file."
+                : tokenValidation?.error === "Invalid access token"
+                ? "Invalid API key. Please check your key on the Tavus Platform."
+                : "API key validation failed. Please check your configuration."
+              }
+            </p>
+          </div>
+        )}
+
         <Button
           onClick={handleClick}
           className="relative z-20 flex items-center justify-center gap-2 rounded-3xl border border-[rgba(255,255,255,0.3)] px-8 py-2 text-sm text-white transition-all duration-200 hover:text-primary mb-12 disabled:opacity-50"
-          disabled={isLoading}
+          disabled={isLoading || !canStartDemo}
           style={{
             height: '48px',
             transition: 'all 0.2s ease-in-out',
             backgroundColor: 'rgba(0,0,0,0.3)',
           }}
           onMouseEnter={(e) => {
-            e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+            if (canStartDemo) {
+              e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+            }
           }}
           onMouseLeave={(e) => {
             e.currentTarget.style.boxShadow = 'none';

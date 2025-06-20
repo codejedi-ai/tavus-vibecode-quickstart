@@ -2,15 +2,14 @@ import { AnimatedWrapper } from "@/components/DialogWrapper";
 import React from "react";
 import { useAtom } from "jotai";
 import { screenAtom } from "@/store/screens";
-import { Unlock } from "lucide-react";
+import { Play } from "lucide-react";
 import AudioButton from "@/components/AudioButton";
 import { apiTokenAtom } from "@/store/tokens";
-import { Input } from "@/components/ui/input";
 import gloriaVideo from "@/assets/video/gloria.mp4";
 
 export const Intro: React.FC = () => {
   const [, setScreenState] = useAtom(screenAtom);
-  const [token, setToken] = useAtom(apiTokenAtom);
+  const [token] = useAtom(apiTokenAtom);
 
   const handleClick = () => {
     setScreenState({ currentScreen: "instructions" });
@@ -37,35 +36,17 @@ export const Intro: React.FC = () => {
 
           <h1 className="text-xl font-bold text-white mb-1" style={{ fontFamily: 'Source Code Pro, monospace' }}>CVI Demo Playground</h1>
 
-          <div className="flex flex-col gap-2 items-center mt-4">
-            <Input
-              type="password"
-              value={token || ""}
-              onChange={(e) => {
-                const newToken = e.target.value;
-                setToken(newToken);
-                localStorage.setItem('tavus-token', newToken);
-              }}
-              placeholder="Enter Tavus API Key"
-              className="w-64 bg-[rgba(255,255,255,0.1)] text-white rounded-3xl border border-[rgba(255,255,255,0.3)] px-4 py-3 text-sm transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-primary"
-              style={{ 
-                color: 'white', 
-                fontFamily: 'Source Code Pro, monospace',
-              }}
-            />
+          <p className="text-sm text-white text-center mb-4 max-w-sm">
+            Experience face-to-face conversation with AI so real, it feels human.
+          </p>
 
-            <p className="text-sm text-white transition-all duration-200">
-              Don't have a key?{" "}
-              <a
-                href="https://platform.tavus.io/api-keys"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="underline hover:text-primary"
-              >
-                Create an account.
-              </a>
-            </p>
-          </div>
+          {!token && (
+            <div className="mb-4 p-3 bg-red-500/20 border border-red-500/50 rounded-lg text-center">
+              <p className="text-sm text-red-200">
+                API key not configured. Please set VITE_TAVUS_API_KEY in your environment variables.
+              </p>
+            </div>
+          )}
 
           <AudioButton 
             onClick={handleClick}
@@ -77,14 +58,16 @@ export const Intro: React.FC = () => {
               backgroundColor: 'rgba(0,0,0,0.3)',
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+              if (token) {
+                e.currentTarget.style.boxShadow = '0 0 15px rgba(34, 197, 254, 0.5)';
+              }
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.boxShadow = 'none';
             }}
           >
-            <Unlock className="size-4" />
-            Unlock Demo
+            <Play className="size-4" />
+            Start Demo
           </AudioButton>
         </div>
       </div>

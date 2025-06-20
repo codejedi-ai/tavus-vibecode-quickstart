@@ -4,12 +4,6 @@
 
 The fastest way to get started vibecoding with Tavus CVI. This React quickstart template provides everything you need to create interactive video experiences powered by Tavus's Conversational Video Interface technology.
 
-> ⚠️ **Important Note**: This is a development template only. For production use, you must:
-> - Never expose your Tavus API keys in the frontend
-> - Implement a secure backend service to handle API calls
-> - Use environment variables and proper key management
-> - Follow security best practices for handling sensitive credentials
-
 <br></br>
 ## 🛠️ Tech Stack
 - React
@@ -30,21 +24,34 @@ Spin up this template in under a minute with StackBlitz:
    - Create an account on [Tavus Platform](https://platform.tavus.io/api-keys)
    - Generate your API token
 
-2. **Run the template:**
+2. **Set up environment variables:**
+   ```bash
+   # Copy the example environment file
+   cp .env.example .env
+   
+   # Edit .env and add your Tavus API key
+   VITE_TAVUS_API_KEY=your_tavus_api_key_here
+   ```
+
+3. **Run the template:**
    ```bash
    npm install
    npm run dev
    ```
 
-3. **Customize your persona:**
-   - Update the `persona_id` in `createConversation.ts` with your own
+4. **Customize your persona:**
+   - Update the `persona_id` in the Settings screen with your own
    - Learn how to [create your own persona](https://docs.tavus.io/sections/conversational-video-interface/creating-a-persona) on the [Tavus Platform](https://platform.tavus.io/)
 
-   ```typescript
-   body: JSON.stringify({
-     persona_id: "your_persona_id_here",
-   }),
-   ```
+<br></br>
+## 🔒 Security
+
+This template uses environment variables to securely handle your Tavus API key. The API key is loaded from `VITE_TAVUS_API_KEY` environment variable and never exposed in the frontend code.
+
+For production deployments:
+- Never commit your `.env` file to version control
+- Use your deployment platform's environment variable settings
+- Consider implementing a backend service for additional security
 
 <br></br>
 ## 📚 Resources

@@ -73,26 +73,6 @@ const Textarea = React.forwardRef<
 });
 Textarea.displayName = "Textarea";
 
-// Switch Component
-const Switch = React.forwardRef<
-  HTMLInputElement,
-  React.InputHTMLAttributes<HTMLInputElement>
->(({ className, ...props }, ref) => {
-  return (
-    <input
-      type="checkbox"
-      role="switch"
-      className={cn(
-        "peer h-6 w-11 rounded-full bg-input transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:bg-primary",
-        className
-      )}
-      ref={ref}
-      {...props}
-    />
-  );
-});
-Switch.displayName = "Switch";
-
 // Label Component
 const Label = React.forwardRef<
   HTMLLabelElement,
@@ -132,7 +112,7 @@ Select.displayName = "Select";
 export const Settings: React.FC = () => {
   const [settings, setSettings] = useAtom(settingsAtom);
   const [, setScreenState] = useAtom(screenAtom);
-  const [token, setToken] = useAtom(apiTokenAtom);
+  const [token] = useAtom(apiTokenAtom);
   const [, setSettingsSaved] = useAtom(settingsSavedAtom);
 
   const languages = [
@@ -310,20 +290,20 @@ export const Settings: React.FC = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="apiToken">API Token</Label>
-                <Input
-                  id="apiToken"
-                  type="password"
-                  value={token || ""}
-                  onChange={(e) => {
-                    const newToken = e.target.value;
-                    setToken(newToken);
-                    localStorage.setItem('tavus-token', newToken);
-                  }}
-                  placeholder="Enter Tavus API Key"
-                  className="bg-black/20 font-mono"
-                  style={{ fontFamily: "'Source Code Pro', monospace" }}
-                />
+                <Label>API Token Status</Label>
+                <div className="p-3 bg-black/20 rounded-md border border-input">
+                  <div className="flex items-center gap-2">
+                    <div className={`w-2 h-2 rounded-full ${token ? 'bg-green-500' : 'bg-red-500'}`} />
+                    <span className="text-sm font-mono">
+                      {token ? 'API key configured via environment' : 'API key not configured'}
+                    </span>
+                  </div>
+                  {!token && (
+                    <p className="text-xs text-gray-400 mt-2 font-mono">
+                      Set VITE_TAVUS_API_KEY in your .env file
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -340,4 +320,4 @@ export const Settings: React.FC = () => {
       </AnimatedTextBlockWrapper>
     </DialogWrapper>
   );
-}; 
+};

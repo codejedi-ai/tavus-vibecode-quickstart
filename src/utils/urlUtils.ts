@@ -4,9 +4,9 @@ export const getConversationIdFromUrl = (): string | null => {
   // Remove leading slash and check if it's a valid conversation ID format
   const pathSegment = path.substring(1);
   
-  // Basic validation: conversation IDs are typically alphanumeric strings
-  // Adjust this regex based on your actual conversation ID format
-  const conversationIdPattern = /^[a-zA-Z0-9]{16,}$/;
+  // More flexible validation: conversation IDs can be various formats
+  // Accept alphanumeric strings with minimum length of 8 characters
+  const conversationIdPattern = /^[a-zA-Z0-9_-]{8,}$/;
   
   if (pathSegment && conversationIdPattern.test(pathSegment)) {
     return pathSegment;
@@ -34,7 +34,7 @@ export const isBogusConversationUrl = (): boolean => {
   
   // Check if there's a path segment but it doesn't match valid conversation ID format
   if (pathSegment && pathSegment !== '') {
-    const conversationIdPattern = /^[a-zA-Z0-9]{16,}$/;
+    const conversationIdPattern = /^[a-zA-Z0-9_-]{8,}$/;
     return !conversationIdPattern.test(pathSegment);
   }
   
@@ -46,7 +46,7 @@ export const getBogusConversationId = (): string | null => {
   const pathSegment = path.substring(1);
   
   if (pathSegment && pathSegment !== '') {
-    const conversationIdPattern = /^[a-zA-Z0-9]{16,}$/;
+    const conversationIdPattern = /^[a-zA-Z0-9_-]{8,}$/;
     if (!conversationIdPattern.test(pathSegment)) {
       return pathSegment;
     }

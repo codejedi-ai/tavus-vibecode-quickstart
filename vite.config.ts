@@ -18,7 +18,12 @@ export default defineConfig({
       'Cross-Origin-Resource-Policy': 'cross-origin'
     },
     // Enable history API fallback for client-side routing
-    historyApiFallback: true,
+    historyApiFallback: {
+      // This ensures all routes are served the index.html
+      rewrites: [
+        { from: /.*/, to: '/index.html' }
+      ]
+    },
   },
   build: {
     rollupOptions: {

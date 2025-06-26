@@ -55,58 +55,27 @@ const useHealthCheck = () => {
         if (conversationId) {
           console.log("Direct conversation access detected");
           
-          if (!token) {
-            console.log("No token available for conversation access");
-            setConversationError("No access token configured - please set VITE_TAVUS_API_KEY in your .env file");
-            setScreenState("conversationError");
-            return;
-          }
-
-          // Validate token first for direct conversation access
-          setIsValidating(true);
+          // For direct conversation access, we don't require a token
+          // The conversation URL itself contains the authentication
           try {
-            console.log("Validating token for conversation access...");
-            const validation = await validateToken(token);
-            setTokenValidation(validation);
+            console.log("Creating conversation object for direct access:", conversationId);
             
-            if (!validation.valid) {
-              console.log("Token validation failed:", validation.error);
-              setConversationError(validation.error === "Invalid access token" 
-                ? "Invalid access token - please check your API key" 
-                : `Token validation failed: ${validation.error}`);
-              setScreenState("conversationError");
-              return;
-            }
+            // Create a conversation object with the ID from URL
+            // The actual conversation_url will be provided by the Tavus API
+            const conversation = {
+              conversation_id: conversationId,
+              conversation_name: `Direct Access - ${conversationId}`,
+              status: "active" as const,
+              conversation_url: `https://tavus.daily.co/${conversationId}`,
+              created_at: new Date().toISOString(),
+            };
             
-            console.log("Token validated successfully, fetching conversation...");
-          } catch (error) {
-            console.error("Token validation error:", error);
-            setTokenValidation({ valid: false, error: "Validation failed" });
-            setConversationError("Failed to validate API token");
-            setScreenState("conversationError");
-            return;
-          } finally {
-            setIsValidating(false);
-          }
-
-          // Try to fetch the conversation
-          try {
-            console.log("Fetching conversation:", conversationId);
-            const conversation = await getConversation(token, conversationId);
-            console.log("Conversation fetched successfully:", conversation);
+            console.log("Direct conversation object created:", conversation);
             setConversation(conversation);
             setScreenState("conversation");
           } catch (error) {
-            console.error("Failed to load conversation:", error);
-            
-            // Store the conversation error for display
-            if (error instanceof Error) {
-              setConversationError(error.message);
-            } else {
-              setConversationError("Failed to load conversation");
-            }
-            
-            // Set screen to show conversation error
+            console.error("Failed to create direct conversation access:", error);
+            setConversationError("Failed to access conversation");
             setScreenState("conversationError");
           }
         } else {

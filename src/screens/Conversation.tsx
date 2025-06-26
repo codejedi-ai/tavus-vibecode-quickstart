@@ -119,6 +119,8 @@ export const Conversation: React.FC = () => {
     if (conversation?.conversation_url) {
       let active = true;
       
+      console.log("Joining Daily.co call:", conversation.conversation_url);
+      
       daily
         ?.join({
           url: conversation.conversation_url,
@@ -128,6 +130,7 @@ export const Conversation: React.FC = () => {
         .then(() => {
           // Only proceed if the component is still active and conversation is still valid
           if (active && conversation && daily) {
+            console.log("Successfully joined Daily.co call");
             daily.setLocalVideo(true);
             daily.setLocalAudio(false);
           }
@@ -135,13 +138,21 @@ export const Conversation: React.FC = () => {
         .catch((error) => {
           // Handle join errors gracefully
           console.error("Failed to join Daily.co call:", error);
+          
+          // If it's a direct access and the URL doesn't work, show error
+          if (isDirectAccess) {
+            setScreenState({ 
+              currentScreen: "conversationError", 
+              error: "The meeting you're trying to join does not exist or has ended." 
+            });
+          }
         });
 
       return () => {
         active = false;
       };
     }
-  }, [conversation?.conversation_url, daily, conversation]);
+  }, [conversation?.conversation_url, daily, conversation, isDirectAccess]);
 
   const toggleVideo = useCallback(() => {
     daily?.setLocalVideo(!isCameraEnabled);
@@ -154,9 +165,12 @@ export const Conversation: React.FC = () => {
   const leaveConversation = useCallback(() => {
     daily?.leave();
     daily?.destroy();
-    if (conversation?.conversation_id && token) {
+    
+    // Only try to end conversation via API if we have a token (not for direct access)
+    if (conversation?.conversation_id && token && !isDirectAccess) {
       endConversation(token, conversation.conversation_id);
     }
+    
     setConversation(null);
     clearSessionTime();
     
@@ -171,7 +185,7 @@ export const Conversation: React.FC = () => {
     } else {
       setScreenState({ currentScreen: "finalScreen" });
     }
-  }, [daily, token, isDirectAccess]);
+  }, [daily, token, isDirectAccess, conversation?.conversation_id, naughtyScore, niceScore]);
 
   return (
     <DialogWrapper>
